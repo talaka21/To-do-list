@@ -5,18 +5,25 @@ namespace App\Http\Controllers;
 use App\Models\goals;
 use App\Http\Requests\StoregoalsRequest;
 use App\Http\Requests\UpdategoalsRequest;
+use App\Services\GoalService;
 use App\Models\Goal;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class GoalsController extends Controller
 {
+    protected $goalService;
+
+    public function __construct(GoalService $goalService)
+    {
+        $this->goalService = $goalService;
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        $goals = auth::user()->goals()->withCount('tasks')->get();
-        return response()->json(['status' => 'success', 'data' => $goals]);
+        return response()->json(['data' => $this->goalService->getAllGoals()]);
     }
 
     /**
@@ -30,27 +37,17 @@ class GoalsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoregoalsRequest $request)
+    public function store(StoregoalsRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'required|in:pending,in_progress,completed'
-        ]);
-$goal = Auth::user()->goals()->create($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Goal created successfully',
-            'data' => $goal
-        ], 201);
-
+        $goal = $this->goalService->createGoal($request->validated());
+        return response()->json(['message' => 'Created', 'data' => $goal], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Goal $goals,$id) {
+    public function show(Goal $goals, $id)
+    {
         $goal = Auth::user()->goals()->with('tasks')->findOrFail($id);
 
         return response()->json([
@@ -70,36 +67,16 @@ $goal = Auth::user()->goals()->create($validated);
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdategoalsRequest $request, $id) {
-$goal = Auth::user()->goals()->findOrFail($id);
-
-        $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'sometimes|required|in:pending,in_progress,completed',
-        ]);
-
-        $goal->update($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Goal updated successfully',
-            'data' => $goal
-        ]);
-
+    public function update(StoregoalsRequest $request, $id)
+    {
+        $goal = $this->goalService->updateGoal($id, $request->validated());
+        return response()->json(['message' => 'Updated', 'data' => $goal]);
     }
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Goal $goals,$id) {
-        $goal = Auth::user()->goals()->findOrFail($id);
-
-        $goal->delete();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Goal deleted successfully'
-        ]);
+    public function destroy($id): JsonResponse {
+        $this->goalService->deleteGoal($id);
+        return response()->json(['message' => 'Deleted']);
     }
 }
