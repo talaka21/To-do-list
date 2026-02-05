@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\Goal;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\tasks>
  */
-class TasksFactory extends Factory
+class TaskFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,7 +18,9 @@ class TasksFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+'title' => fake()->sentence(4),
+        'is_completed' => fake()->boolean(),
+        'goal_id' => Goal::factory(),
         ];
     }
 }

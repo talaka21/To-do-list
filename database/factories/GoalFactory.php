@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\goals>
  */
-class GoalsFactory extends Factory
+class GoalFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,7 +18,11 @@ class GoalsFactory extends Factory
     public function definition(): array
     {
         return [
-            //
-        ];
+           'title' => fake()->sentence(3),
+        'description' => fake()->paragraph(),
+        'status' => fake()->randomElement(['pending', 'in_progress', 'completed']),
+        'user_id' => User::factory(),
+    ];
+
     }
 }
